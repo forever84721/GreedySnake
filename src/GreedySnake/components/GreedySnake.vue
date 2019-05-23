@@ -6,12 +6,18 @@
         v-for="j in w"
         :key="j"
         :class="{snake:IsSnake(i-1,j-1),head:IsHead(i-1,j-1),food:IsFood(i-1,j-1)}"
+        :style="{width:GridSize+'px',height:GridSize+'px'}"
       ></div>
     </div>
     <span>Width:</span>
     <input type="number" v-model.number="w">
     <span>Height:</span>
     <input type="number" v-model.number="h">
+    <br>
+    <span>Size:</span>
+    <input type="number" v-model.number="GridSize">
+    <span>Speed:</span>
+    <input type="number" v-model.number="Speed">
   </div>
 </template>
 
@@ -25,10 +31,11 @@ export default {
       h: parseInt(this.height),
       direction: 1,
       nextdirection: 1,
-      IntervalId: 0,
       Snake: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }],
       NowFood: { x: 0, y: 0 },
-      Score: 0
+      Score: 0,
+      GridSize: 40,
+      Speed: 5
     };
   },
   methods: {
@@ -84,6 +91,7 @@ export default {
         this.Snake.splice(0, 1);
       }
       this.Snake.push(temp);
+      setTimeout(() => this.Go(), 1000 / this.Speed);
     },
     IsSnake(i, j) {
       return this.Snake.some(
@@ -154,9 +162,7 @@ export default {
     this.GenerateFood();
   },
   mounted() {
-    this.IntervalId = setInterval(() => {
-      this.Go();
-    }, 200);
+    setTimeout(() => this.Go(), 200);
   }
 };
 </script>
@@ -170,8 +176,8 @@ export default {
   flex-direction: column;
 }
 .grid {
-  width: 40px;
-  height: 40px;
+  // width: 40px;
+  // height: 40px;
   background-color: rgb(255, 253, 161);
   // border: 1px;
   // border-style: solid;
