@@ -18,11 +18,16 @@
     <input type="number" v-model.number="GridSize">
     <span>Speed:</span>
     <input type="number" v-model.number="Speed">
+    <span>Mode:</span>
+    <select v-model.number="Mode">
+      <option value="1">Extend</option>
+      <option value="2">Wall</option>
+    </select>
   </div>
 </template>
-
 <script>
 import { log } from "util";
+import { truncate } from "fs";
 export default {
   props: ["width", "height"],
   data() {
@@ -35,12 +40,14 @@ export default {
       NowFood: { x: 0, y: 0 },
       Score: 0,
       GridSize: 40,
-      Speed: 5
+      Speed: 5,
+      Mode: 1
     };
   },
   methods: {
     Go() {
       this.direction = this.nextdirection;
+      var gameover = false;
       switch (this.direction) {
         case 1: //right
           var temp = {
@@ -48,7 +55,12 @@ export default {
             y: this.Snake[this.Snake.length - 1].y
           };
           if (temp.x >= this.w) {
-            temp.x = 0;
+            if (this.Mode === 1) {
+              temp.x = 0;
+            } else {
+              gameover = true;
+              this.GameOver();
+            }
           }
           break;
         case 2: //down
@@ -57,7 +69,12 @@ export default {
             y: this.Snake[this.Snake.length - 1].y + 1
           };
           if (temp.y >= this.h) {
-            temp.y = 0;
+            if (this.Mode === 1) {
+              temp.y = 0;
+            } else {
+              gameover = true;
+              this.GameOver();
+            }
           }
           break;
         case 3: //left
@@ -66,7 +83,12 @@ export default {
             y: this.Snake[this.Snake.length - 1].y
           };
           if (temp.x < 0) {
-            temp.x = this.w - 1;
+            if (this.Mode === 1) {
+              temp.x = this.w - 1;
+            } else {
+              gameover = true;
+              this.GameOver();
+            }
           }
           break;
         case 4: //up
@@ -75,23 +97,36 @@ export default {
             y: this.Snake[this.Snake.length - 1].y - 1
           };
           if (temp.y < 0) {
-            temp.y = this.h - 1;
+            if (this.Mode === 1) {
+              temp.y = this.h - 1;
+            } else {
+              gameover = true;
+              this.GameOver();
+            }
           }
           break;
       }
-      if (this.Snake.some(item => item.x === temp.x && item.y === temp.y)) {
-        alert(`GameOver Score:${this.Score}`);
-        this.Score = 0;
-        this.Snake = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }];
+      if (!gameover) {
+        if (this.Snake.some(item => item.x === temp.x && item.y === temp.y)) {
+          this.GameOver();
+        } else {
+          if (temp.x === this.NowFood.x && temp.y === this.NowFood.y) {
+            this.Score++;
+            this.GenerateFood();
+          } else {
+            this.Snake.splice(0, 1);
+          }
+          this.Snake.push(temp);
+        }
       }
-      if (temp.x === this.NowFood.x && temp.y === this.NowFood.y) {
-        this.Score++;
-        this.GenerateFood();
-      } else {
-        this.Snake.splice(0, 1);
-      }
-      this.Snake.push(temp);
       setTimeout(() => this.Go(), 1000 / this.Speed);
+    },
+    GameOver() {
+      alert(`GameOver Score:${this.Score}`);
+      this.Score = 0;
+      this.direction = 1;
+      this.nextdirection = 1;
+      this.Snake = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }];
     },
     IsSnake(i, j) {
       return this.Snake.some(
